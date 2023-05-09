@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Upload de Mídia</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</head>
+<body>
+	<div class="container">
+		<h1>Envie o verso de sua identidade</h1>
+    <div class="input-group mb-3">
+      <div class="custom-file">
+        <input type="file" class="custom-file-input" id="media-input">
+        <label class="custom-file-label" for="inputGroupFile01">Selecione um arquivo...</label>
+      </div>
+    </div>
+    <button id="upload-button" type="button" class="btn btn-success">Enviar</button>
+    <div class="card">
+      <div class="card-header">
+        <h4 id="nome"></h4>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-3">
+            <img id="foto" src="placeholder.png" alt="Foto de perfil" class="img-fluid rounded">
+          </div>
+          <div class="col-sm-9">
+            <div class="col">
+              <div class="col-sm-6">
+                <p><strong>ID:</strong> <span id="identidade"></span></p>
+              </div>
+              <div class="col-sm-7">
+                <p><strong>Nasc:</strong> <span id="nascimento"></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Opa!</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Por favor, selecione um arquivo para fazer o upload.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Fechar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>      
+	<script src="script.js"></script>
+</body>
+</html>

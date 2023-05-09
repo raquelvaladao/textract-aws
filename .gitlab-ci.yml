@@ -1,0 +1,76 @@
+stages:
+  - build
+  - containerize  
+  - test
+  - deploy
+
+maven-build-job:
+  image: maven:latest
+  stage: build
+  script:
+    - mvn clean install
+    - mvn help:evaluate -Dexpression=project.name -q -DforceStdout > target/NAME
+    - mvn help:evaluate -Dexpression=project.version -q -DforceStdout > target/VERSION
+  artifacts:
+     paths:
+       - target/
+     expire_in: 20 minutes
+
+docker-image:
+  image: docker:latest
+  stage: containerize
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - |
+        export TAG="$(cat target/VERSION)"
+        export NAME="$(cat target/NAME)"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $TAG and name = $NAME"
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/${NAME}:${TAG}" .
+    - docker push "$CI_REGISTRY_IMAGE/${NAME}:${TAG}"
+
+image-lint:
+  stage: test
+  image: docker:stable
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - export TAG="$(cat target/VERSION)"
+    - export NAME="$(cat target/NAME)"
+    - export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    - wget --no-verbose https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -O - | tar -zxvf -
+  script:
+    - ./trivy image --exit-code 1 --skip-files "/app/api.jar,/opt/agent-bond/agent-bond.jar" --severity CRITICAL "$CI_REGISTRY_IMAGE/${NAME}:${TAG}"
+  artifacts:
+    paths:
+      - report.json
+    expire_in: "60 minutes"
+
+deploy:
+  stage: deploy
+  image:
+    name: hashicorp/terraform:light
+    entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  variables:
+    IAC_REPOSITORY: https://github.com/raquelvaladao/ecs-fargate-private-registry-module
+    SECURE_FILES_DOWNLOAD_PATH: .secure_files
+  before_script:
+    - apk add curl git bash
+    - git clone ${IAC_REPOSITORY} && cd $(echo "${IAC_REPOSITORY}" | awk -F'/' '{print $NF}') && git checkout remote-backend
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - export TAG="$(cat target/VERSION)"
+    - export TV_VAR_image_version="${TAG}"
+  script:
+    - terraform init -backend-config=${SECURE_FILES_DOWNLOAD_PATH}/backend.conf
+    - terraform plan
+    # - terraform apply -auto-approve - comentando para nao gastar dinheiro
